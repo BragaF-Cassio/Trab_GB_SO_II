@@ -1,0 +1,33 @@
+# Cenário demonstrativo controlado para o vídeo.
+# Formato: <processo> <R|W> <endereço (hex 0x.. ou decimal)>
+# Cada página tem 8 KB = 0x2000 bytes; a página p começa em p*0x2000.
+
+# 1) Enche os 8 frames com as páginas 0..7.
+#    As páginas 2 e 5 recebem ESCRITA, ficando sujas (D=1).
+P1 R 0x00000   # pag 0  -> frame 0
+P1 R 0x02000   # pag 1  -> frame 1
+P1 W 0x04000   # pag 2  -> frame 2  (suja)
+P2 R 0x06000   # pag 3  -> frame 3
+P2 R 0x08000   # pag 4  -> frame 4
+P2 W 0x0A000   # pag 5  -> frame 5  (suja)
+P1 R 0x0C000   # pag 6  -> frame 6
+P1 R 0x0E000   # pag 7  -> frame 7  (RAM cheia)
+
+# 2) Re-acessa as páginas 0 e 1: mantém o bit R=1 nelas (ganharão segunda chance).
+P1 R 0x00010   # pag 0  -> HIT
+P1 R 0x02010   # pag 1  -> HIT
+
+# 3) Acessa a página 8: RAM cheia -> FALTA -> o Clock escolhe a vítima.
+#    O ponteiro pula 0 e 1 (R=1, segunda chance) e remove a primeira com R=0.
+P2 R 0x10000   # pag 8
+
+# 4) Escreve na página 9: nova substituição; se a vítima estiver suja, há write-back.
+P1 W 0x12000   # pag 9  (suja)
+
+# 5) Acessa a página 10: o ponteiro está no frame 2 (pág 2, R=0, D=1)
+#    -> a pág 2 é a vítima e, por estar SUJA, gera WRITE-BACK ao sair.
+P2 R 0x14000   # pag 10
+
+# 6) Volta à página 2: ela já saiu da RAM e é recarregada do disco JÁ com a
+#    marca de escrita persistida pelo write-back anterior (demonstra persistência).
+P2 R 0x04000   # pag 2 (offset 0, onde a escrita ocorreu)
