@@ -10,13 +10,11 @@ import (
 
 func main() {
 	var (
-		fAlg       = flag.String("alg", "clock", "algoritmo: clock|fifo|lru|nru")
 		fProcessos = flag.Int("processos", 2, "número de processos leves (mín. 2)")
 		fAcessos   = flag.Int("acessos", 25, "acessos por processo (modo aleatório)")
 		fSemente   = flag.Int64("semente", 42, "semente do gerador (reprodutibilidade)")
 		fEscrita   = flag.Float64("escrita", 0.30, "proporção de escritas (0..1)")
 		fTrace     = flag.String("trace", "", "arquivo de trace (modo cenário controlado)")
-		fComparar  = flag.Bool("comparar", false, "ao final, compara todos os algoritmos no mesmo trace")
 		fCor       = flag.Bool("cor", true, "usa cores ANSI na saída")
 		fSnapshot  = flag.Bool("snapshot", true, "imprime o estado dos frames a cada falta de página")
 	)
@@ -26,11 +24,7 @@ func main() {
 		*fProcessos = 2 // o enunciado exige no mínimo dois processos leves
 	}
 
-	alg := criarSubstituidor(*fAlg)
-	if alg == nil {
-		fmt.Fprintf(os.Stderr, "algoritmo desconhecido: %q (use clock, fifo, lru ou nru)\n", *fAlg)
-		os.Exit(1)
-	}
+	alg := NovoClock()
 
 	cabecalho(alg.Nome(), *fProcessos, *fTrace)
 
@@ -81,11 +75,6 @@ func main() {
 	wgSaida.Wait()
 
 	resumoFinal(mmu)
-
-	if *fComparar {
-		// Reaproveita a ordem REAL de consumo, para uma comparação justa.
-		compararAlgoritmos(mmu.consumidos, *fCor)
-	}
 }
 
 func cabecalho(alg string, processos int, trace string) {

@@ -51,25 +51,17 @@ Não há dependências externas (as cores usam códigos ANSI próprios).
 
 # Cenário controlado a partir de um trace (ordem exata dos acessos)
 ./simulador -trace exemplo.trace
-
-# Comparar TODOS os algoritmos sobre a mesma sequência de acessos
-./simulador -acessos 80 -comparar -snapshot=false
-
-# Trocar o algoritmo protagonista da execução ao vivo
-./simulador -alg lru        # clock | fifo | lru | nru
 ```
 
 ### Flags
 
 | Flag         | Padrão  | Descrição                                            |
 |--------------|---------|------------------------------------------------------|
-| `-alg`       | `clock` | algoritmo da execução ao vivo: `clock fifo lru nru`  |
 | `-processos` | `2`     | número de processos leves (mínimo 2)                 |
 | `-acessos`   | `25`    | acessos por processo (modo aleatório)                |
 | `-semente`   | `42`    | semente do gerador (reprodutibilidade)               |
 | `-escrita`   | `0.30`  | proporção de escritas (0..1)                         |
 | `-trace`     | `""`    | arquivo de trace (cenário controlado)                |
-| `-comparar`  | `false` | ao final, compara todos os algoritmos no mesmo trace |
 | `-cor`       | `true`  | cores ANSI na saída                                  |
 | `-snapshot`  | `true`  | imprime o estado dos frames a cada falta de página   |
 
@@ -88,8 +80,8 @@ Não há dependências externas (as cores usam códigos ANSI próprios).
 4. **Tradução por bits** — deslocamento e máscara (ver `endereco.go`).
 5. **Geração híbrida de acessos** — aleatória com semente (modelo de localidade)
    **ou** trace de arquivo. Alocação de frames é global.
-6. **Substituição plugável** — interface `Substituidor`; **Clock** é o
-   protagonista, com FIFO, LRU, Clock-NRU e OPT como comparáveis.
+6. **Substituição plugável** — interface `Substituidor`, implementada pelo
+   algoritmo **Clock / Segunda Chance**.
 7. **Disco simulado em memória** (1 MB) com **conteúdo sintético derivado do
    endereço** (`[pag NNN]`), tornando a saída autoverificável.
 8. **Leitura e escrita** com **bit de sujeira (D)** e **write-back** de páginas
@@ -114,10 +106,9 @@ disco.go         backing store de 1 MB com conteúdo sintético
 processo.go      processos leves (produtores) com localidade
 trace.go         leitor de trace de arquivo
 substituidor.go  interfaces Substituidor / EstadoFrames / Visualizavel
-fifo.go lru.go clock.go nru.go optimal.go   algoritmos
+clock.go         algoritmo Clock / Segunda Chance
 mmu.go           núcleo: tradução, falta de página, substituição, write-back
 saida.go         goroutine de saída: log colorido + snapshots
-comparar.go      execução silenciosa e tabela comparativa
 main.go          flags e orquestração produtor/consumidor
 exemplo.trace    cenário demonstrativo controlado
 ```
@@ -138,12 +129,3 @@ O `exemplo.trace` foi montado para, em sequência: encher os 8 frames (deixando
 páginas sujas), dar segunda chance via Clock ao acessar uma nova página, e
 **remover uma página suja com write-back** — recarregando-a depois para mostrar
 que o conteúdo escrito **persistiu** no disco.
-
----
-
-## Comparação de algoritmos
-
-`./simulador -comparar` roda a **mesma** sequência de acessos por FIFO, LRU,
-Clock, Clock-NRU e OPT, imprimindo faltas, write-backs e taxas. O **OPT**
-(algoritmo de Belady) é irrealizável num SO real — serve de **limite inferior**
-de faltas para situar os demais.

@@ -22,3 +22,17 @@ func EnderecoFisico(frame, offset int) uint32 {
 func (e EnderecoVirtual) DecomposicaoBits() string {
 	return fmt.Sprintf("%07b·%013b", e.Pagina(), e.Offset())
 }
+
+// FaixaFisicaFrame devolve a faixa de endereços físicos (16 bits) coberta por um
+// frame: do byte base até o último byte do bloco de 8 KB.
+func FaixaFisicaFrame(frame int) string {
+	base := frame * TamBloco
+	return fmt.Sprintf("0x%04X-0x%04X", base, base+TamBloco-1)
+}
+
+// FaixaVirtualPagina devolve a faixa de endereços virtuais (20 bits) coberta por
+// uma página: do byte base até o último byte do bloco de 8 KB.
+func FaixaVirtualPagina(pagina int) string {
+	base := pagina * TamBloco
+	return fmt.Sprintf("0x%05X-0x%05X", base, base+TamBloco-1)
+}

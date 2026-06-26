@@ -101,7 +101,11 @@ func (s *Saida) imprimirLinha(ev Evento) {
 }
 
 const boxIndent = "        " // recuo do snapshot
-const boxInner = 46          // largura interna da moldura (colunas visíveis)
+const boxInner = 54          // largura interna da moldura (colunas visíveis)
+
+// rowFmt fixa as colunas do snapshot: frame · faixa física · página · faixa
+// virtual · bits R/D. Cabeçalho e linhas usam o MESMO formato → alinhamento.
+const rowFmt = " %-4s %-13s %4s  %-15s  %s"
 
 func (s *Saida) imprimirSnapshot(ev Evento) {
 	var b strings.Builder
@@ -112,20 +116,24 @@ func (s *Saida) imprimirSnapshot(ev Evento) {
 	b.WriteString(s.c("┌"+titulo+strings.Repeat("─", boxInner-len([]rune(titulo)))+"┐\n", cCinza))
 
 	// cabeçalho das colunas
-	b.WriteString(s.linhaBox(" frame    página    R   D", 25))
+	cab := fmt.Sprintf(rowFmt, "frm", "faixa física", "pág", "faixa virtual", "R D")
+	b.WriteString(s.linhaBox(cab, len([]rune(cab))))
 
 	for _, fi := range ev.Snapshot {
+		fisica := FaixaFisicaFrame(fi.Indice)
 		var conteudo string
-		var vis int
 		if fi.Pagina >= 0 {
-			conteudo = fmt.Sprintf(" [%d]      %4d     %d   %d", fi.Indice, fi.Pagina, b2i(fi.R), b2i(fi.D))
+			conteudo = fmt.Sprintf(rowFmt, fmt.Sprintf("[%d]", fi.Indice), fisica,
+				fmt.Sprintf("%d", fi.Pagina), FaixaVirtualPagina(fi.Pagina),
+				fmt.Sprintf("%d %d", b2i(fi.R), b2i(fi.D)))
 		} else {
-			conteudo = fmt.Sprintf(" [%d]        --   (livre)", fi.Indice)
+			conteudo = fmt.Sprintf(rowFmt, fmt.Sprintf("[%d]", fi.Indice), fisica,
+				"--", "(livre)", "")
 		}
-		vis = len([]rune(conteudo))
+		vis := len([]rune(conteudo))
 		if fi.Ponteiro { // ponteiro do Clock
-			conteudo += "   " + s.c("← ●", cAmar)
-			vis += 6
+			conteudo += "  " + s.c("← ●", cAmar)
+			vis += 5
 		}
 		b.WriteString(s.linhaBox(conteudo, vis))
 	}

@@ -17,8 +17,6 @@ type MMU struct {
 	hits       int
 	faltas     int
 	writebacks int
-
-	consumidos []Acesso // ordem real de consumo (para comparação posterior)
 }
 
 // NovaMMU monta a MMU com um algoritmo de substituição e um canal de eventos.
@@ -40,10 +38,6 @@ func (m *MMU) BitReferencia(f int) bool {
 	p := m.memoria.Frames[f].Pagina
 	return p >= 0 && m.tabela[p].Referencia
 }
-func (m *MMU) BitSujeira(f int) bool {
-	p := m.memoria.Frames[f].Pagina
-	return p >= 0 && m.tabela[p].Suja
-}
 func (m *MMU) LimparReferencia(f int) {
 	if p := m.memoria.Frames[f].Pagina; p >= 0 {
 		m.tabela[p].Referencia = false
@@ -54,7 +48,6 @@ func (m *MMU) LimparReferencia(f int) {
 func (m *MMU) Processar(a Acesso) {
 	m.seq++
 	a.Seq = m.seq
-	m.consumidos = append(m.consumidos, a)
 
 	pag := a.Endereco.Pagina()
 	off := a.Endereco.Offset()

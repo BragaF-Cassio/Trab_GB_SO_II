@@ -9,7 +9,6 @@ type EstadoFrames interface {
 	PaginaEm(frame int) int       // página atualmente no frame
 	BitReferencia(frame int) bool // lê o bit R da PTE
 	LimparReferencia(frame int)   // zera o bit R (segunda chance do Clock)
-	BitSujeira(frame int) bool    // lê o bit D da PTE (usado pelo Clock-NRU)
 }
 
 // Substituidor é a interface plugável dos algoritmos de substituição.
@@ -22,24 +21,7 @@ type Substituidor interface {
 	EscolherVitima(e EstadoFrames) int // devolve o frame a ser substituído
 }
 
-// Visualizavel é opcional: algoritmos com um ponteiro a exibir (Clock, NRU).
+// Visualizavel é opcional: algoritmos com um ponteiro a exibir (Clock).
 type Visualizavel interface {
 	Ponteiro() int
-}
-
-// criarSubstituidor instancia o algoritmo pelo nome. O OPT precisa da sequência
-// futura (só disponível no modo de comparação), por isso é tratado à parte.
-func criarSubstituidor(nome string) Substituidor {
-	switch nome {
-	case "fifo":
-		return NovoFIFO()
-	case "lru":
-		return NovoLRU()
-	case "clock":
-		return NovoClock()
-	case "nru":
-		return NovoNRU()
-	default:
-		return nil
-	}
 }
