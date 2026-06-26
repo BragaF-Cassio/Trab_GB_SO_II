@@ -138,3 +138,6 @@ ponteiro do Clock.](docs/exemplo-saida.png)
 
 Na imagem dá para observar uma **substituição com write-back** (`+write-back`,
 acesso #00035) e o **ponteiro do Clock** (`← ●`) percorrendo os frames.
+
+## Vídeo da apresentação
+https://youtu.be/2yKrsF-kp9I
