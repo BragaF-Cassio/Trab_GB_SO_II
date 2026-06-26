@@ -129,3 +129,12 @@ O `exemplo.trace` foi montado para, em sequência: encher os 8 frames (deixando
 páginas sujas), dar segunda chance via Clock ao acessar uma nova página, e
 **remover uma página suja com write-back** — recarregando-a depois para mostrar
 que o conteúdo escrito **persistiu** no disco.
+
+### Exemplo de saída no terminal
+
+![Exemplo de saída do simulador no terminal: linhas de acesso (HIT/FALTA) e os
+snapshots tabulares dos 8 frames com faixa física, faixa virtual, bits R/D e o
+ponteiro do Clock.](docs/exemplo-saida.png)
+
+Na imagem dá para observar uma **substituição com write-back** (`+write-back`,
+acesso #00035) e o **ponteiro do Clock** (`← ●`) percorrendo os frames.
